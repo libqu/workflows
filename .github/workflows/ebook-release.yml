@@ -34,7 +34,7 @@ jobs:
         else
           CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
         fi
-        
+
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
           echo "CHANGED_FILES: $CHANGED_FILES" # debug
           echo "STOP_WORKFLOW=true" >> $GITHUB_ENV
@@ -64,16 +64,16 @@ jobs:
         for f in *.*; do 
             case "$f" in
                 *_advanced.epub)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.advanced.epub"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.繁體.advanced.epub"
                     ;;
                 *.kepub.epub)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.kobo.kepub.epub"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.简体.kobo.kepub.epub"
                     ;;
                 *.epub)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.compatible.epub"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.quitté.compatible.epub"
                     ;;
                 *.azw3)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.kindle.azw3"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.समयमा.kindle.azw3"
                     ;;
             esac
         done
