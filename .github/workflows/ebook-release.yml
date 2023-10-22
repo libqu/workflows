@@ -25,11 +25,15 @@ jobs:
           exit 0
         fi
 
+        echo "after checking branch name" #debug
+        
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
           echo "CHANGED_FILES: $CHANGED_FILES"
           exit 0
         fi
+
+        echo "after checking changed files" #debug
 
     - name: Build inside Docker
       run: |
