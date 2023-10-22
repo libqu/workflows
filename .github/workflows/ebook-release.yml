@@ -1,0 +1,137 @@
+name: "Ebook Release"
+on:
+  workflow_call:
+    inputs:
+    secrets:
+      GITHUB_TOKEN:
+        required: true
+
+jobs:
+  branch_and_dir_check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Check branch name starts with 'lang/' and 'src/' changes
+      id: check
+      run: |
+        if [[ $GITHUB_REF != refs/heads/lang/* ]]; then
+          echo "::set-output name=should_run::false"
+          exit 0
+        fi
+
+        CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
+          echo "::set-output name=should_run::false"
+          exit 0
+        fi
+
+        echo "::set-output name=should_run::true"
+
+  build-and-release:
+    if: needs.branch_and_dir_check.outputs.should_run == 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Build inside Docker
+      run: |
+        docker run --rm -v $PWD:/repo -w /repo python:latest /bin/bash -c "
+        apt update && apt install calibre default-jre git -y
+        pip install -U pip
+        git clone https://github.com/libqu/se-tools.git /tools
+        pip install /tools
+        se build --output-dir=.build --kindle --kobo .
+        "
+
+    - name: Post-build actions
+      run: |
+        echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
+        cd .build
+        for f in *.*; do mv "$f" "${LANGUAGE}.${f#*.}"; done
+
+    - name: Post-build actions
+      run: |
+        echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
+        REPO_NAME=${GITHUB_REPOSITORY##*/}
+        cd .build
+        for f in *.*; do mv "$f" "${REPO_NAME}.${LANGUAGE}.${f#*.}"; done
+
+    - name: Post-build actions
+      run: |
+        echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
+        REPO_NAME=${GITHUB_REPOSITORY##*/}
+        cd .build
+        for f in *.*; do 
+            if [[ "$f" == *_advanced.epub ]]; then
+                mv "$f" "${REPO_NAME}.${LANGUAGE}.advanced.${f#*.}"
+            else
+                mv "$f" "${REPO_NAME}.${LANGUAGE}.${f#*.}"
+            fi
+        done
+
+    - name: Create or Update Release
+      uses: actions/github-script@v4
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          
+          // Define language descriptions
+          const languageDescriptions = {
+            "zh-Hant": "繁体中文",
+            "zh-Hans": "简体中文",
+          };
+
+          // Fetch releases to find if one already exists
+          const releases = await github.repos.listReleases({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+          });
+
+          const existingRelease = releases.data.find(release => release.tag_name === process.env.LANGUAGE);
+          
+          // Delete existing release if it exists
+          if (existingRelease) {
+            await github.repos.deleteRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: existingRelease.id,
+            });
+          }
+
+          // Create release
+          const release = await github.repos.createRelease({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            tag_name: process.env.LANGUAGE,
+            name: languageDescriptions[process.env.LANGUAGE],
+            body: `${process.env.LANGUAGE}\n${languageDescriptions[process.env.LANGUAGE]}`
+          });
+
+          // Upload assets
+          const assetsDir = path.join(process.env.GITHUB_WORKSPACE, '.build');
+          const allowedExtensions = ['.azw3', '.epub'];
+
+          for (const asset of fs.readdirSync(assetsDir)) {
+              const extname = path.extname(asset);
+              if (allowedExtensions.includes(extname)) {
+                  await github.repos.uploadReleaseAsset({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      release_id: release.data.id,
+                      name: path.basename(asset),
+                      data: fs.readFileSync(path.join(assetsDir, asset)),
+                  });
+              }
+          }
+
+
+
