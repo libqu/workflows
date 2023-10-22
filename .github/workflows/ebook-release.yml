@@ -58,6 +58,7 @@ jobs:
       if: env.STOP_WORKFLOW != 'true'
       run: |
         LANGUAGE=${GITHUB_REF#refs/heads/lang/}
+        echo "LANGUAGE=$LANGUAGE" >> $GITHUB_ENV
         REPO_NAME=${GITHUB_REPOSITORY##*/}
         sudo chown -R $USER: .build
         cd .build
