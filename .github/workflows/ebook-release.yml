@@ -21,21 +21,24 @@ jobs:
     - name: Check branch name starts with 'lang/' and 'src/' changes
       run: |
         if [[ $GITHUB_REF != refs/heads/lang/* ]]; then
-          echo "GITHUB_REF: $GITHUB_REF"
+          echo "GITHUB_REF: $GITHUB_REF" # debug
+          echo "STOP_WORKFLOW=true" >> $GITHUB_ENV
           exit 0
         fi
 
         echo "after checking branch name" #debug
-        
+
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
-          echo "CHANGED_FILES: $CHANGED_FILES"
+          echo "CHANGED_FILES: $CHANGED_FILES" # debug
+          echo "STOP_WORKFLOW=true" >> $GITHUB_ENV
           exit 0
         fi
 
         echo "after checking changed files" #debug
 
     - name: Build inside Docker
+      if: env.STOP_WORKFLOW != 'true'
       run: |
         docker run --rm -v $PWD:/repo -w /repo python:latest /bin/bash -c "
         apt update && apt install --no-install-recommends calibre default-jre git -y
@@ -46,6 +49,7 @@ jobs:
         "
 
     - name: Rename builds
+      if: env.STOP_WORKFLOW != 'true'
       run: |
         echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
         REPO_NAME=${GITHUB_REPOSITORY##*/}
@@ -69,6 +73,7 @@ jobs:
         done
 
     - name: Create release
+      if: env.STOP_WORKFLOW != 'true'
       uses: actions/github-script@v4
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
