@@ -57,23 +57,23 @@ jobs:
     - name: Rename builds
       if: env.STOP_WORKFLOW != 'true'
       run: |
-        echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
+        LANGUAGE=${GITHUB_REF#refs/heads/lang/}
         REPO_NAME=${GITHUB_REPOSITORY##*/}
         sudo chown -R $USER: .build
         cd .build
         for f in *.*; do 
             case "$f" in
                 *_advanced.epub)
-                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.advanced.epub"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.advanced.epub"
                     ;;
                 *.kepub.epub)
-                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.kobo.kepub.epub"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.kobo.kepub.epub"
                     ;;
                 *.epub)
-                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.compatible.epub"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.compatible.epub"
                     ;;
                 *.azw3)
-                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.kindle.azw3"
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.kindle.azw3"
                     ;;
             esac
         done
