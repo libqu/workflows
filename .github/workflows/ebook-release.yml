@@ -11,20 +11,17 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with: 
+        fetch-depth: 0 # fetch all
 
     - name: Check branch name starts with 'lang/' and 'src/' changes
       id: check
       run: |
-        echo "GITHUB_REF = $GITHUB_REF"
         if [[ $GITHUB_REF != refs/heads/lang/* ]]; then
           echo "::set-output name=should_run::false"
           exit 0
         fi
 
-        currentDir=$(pwd)
-        echo "dir before run diff: $currentDir"
-        ls -alh
-        git status
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
           echo "::set-output name=should_run::false"
