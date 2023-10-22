@@ -2,6 +2,7 @@ name: "Ebook Release"
 on:
   workflow_call
 
+# Limits permissions.
 permissions:
   contents: write  # for creating a release
   actions: read    # for GitHub actions
@@ -28,7 +29,11 @@ jobs:
 
         echo "after checking branch name" #debug
 
-        CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        if [[ "${{ github.event.before }}" == "0000000000000000000000000000000000000000" ]]; then
+          CHANGED_FILES=$(git ls-files) # when new branch been created
+        else
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+        
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
           echo "CHANGED_FILES: $CHANGED_FILES" # debug
           echo "STOP_WORKFLOW=true" >> $GITHUB_ENV
