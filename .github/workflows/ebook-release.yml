@@ -60,17 +60,17 @@ jobs:
             esac
         done
 
-    - name: Create Release
+    - name: Create release
       uses: actions/github-script@v4
       with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const fs = require('fs');
           const path = require('path');
           
           // Define language descriptions
           const languageDescriptions = {
-            "zh-Hant": "繁体中文",
+            "zh-Hant": "繁體中文",
             "zh-Hans": "简体中文",
           };
 
