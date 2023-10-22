@@ -3,7 +3,7 @@ on:
   workflow_call
 
 jobs:
-  branch_and_dir_check:
+  build-release:
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
@@ -54,13 +54,23 @@ jobs:
       run: |
         echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
         REPO_NAME=${GITHUB_REPOSITORY##*/}
+        sudo chown -R $USER: .build
         cd .build
         for f in *.*; do 
-            if [[ "$f" == *_advanced.epub ]]; then
-                mv "$f" "${REPO_NAME}.${LANGUAGE}.advanced.${f#*.}"
-            else
-                mv "$f" "${REPO_NAME}.${LANGUAGE}.${f#*.}"
-            fi
+            case "$f" in
+                *_advanced.epub)
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.advanced.epub"
+                    ;;
+                *.kepub.epub)
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.kobo.kepub.epub"
+                    ;;
+                *.epub)
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.compatible.epub"
+                    ;;
+                *.azw3)
+                    mv "$f" "${REPO_NAME}.${LANGUAGE}.kindle.azw3"
+                    ;;
+            esac
         done
 
     - name: Create or Update Release
