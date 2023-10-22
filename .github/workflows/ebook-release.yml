@@ -64,16 +64,16 @@ jobs:
         for f in *.*; do 
             case "$f" in
                 *_advanced.epub)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.繁體.advanced.epub"
+                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.advanced.epub"
                     ;;
                 *.kepub.epub)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.简体.kobo.kepub.epub"
+                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.kobo.kepub.epub"
                     ;;
                 *.epub)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.quitté.compatible.epub"
+                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.compatible.epub"
                     ;;
                 *.azw3)
-                    mv "$f" "${REPO_NAME}.${LANGUAGE}.समयमा.kindle.azw3"
+                    mv "$f" "${REPO_NAME}.${env.LANGUAGE}.kindle.azw3"
                     ;;
             esac
         done
