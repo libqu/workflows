@@ -22,6 +22,8 @@ jobs:
           exit 0
         fi
 
+        echo "check branch name pass" #--debug
+
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
           echo "::set-output name=should_run::false"
@@ -29,6 +31,7 @@ jobs:
         fi
 
         echo "::set-output name=should_run::true"
+        echo "check repo changes pass"
 
   build_and_release:
     if: needs.branch_and_dir_check.outputs.should_run == 'true'
