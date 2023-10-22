@@ -30,27 +30,14 @@ jobs:
     - name: Build inside Docker
       run: |
         docker run --rm -v $PWD:/repo -w /repo python:latest /bin/bash -c "
-        apt update && apt install calibre default-jre git -y
+        apt update && apt install --no-install-recommends calibre default-jre git -y
         pip install -U pip
         git clone https://github.com/libqu/se-tools.git /tools
         pip install /tools
         se build --output-dir=.build --kindle --kobo .
         "
 
-    - name: Post-build actions
-      run: |
-        echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
-        cd .build
-        for f in *.*; do mv "$f" "${LANGUAGE}.${f#*.}"; done
-
-    - name: Post-build actions
-      run: |
-        echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
-        REPO_NAME=${GITHUB_REPOSITORY##*/}
-        cd .build
-        for f in *.*; do mv "$f" "${REPO_NAME}.${LANGUAGE}.${f#*.}"; done
-
-    - name: Post-build actions
+    - name: Rename builds
       run: |
         echo "LANGUAGE=${GITHUB_REF#refs/heads/lang/}" >> $GITHUB_ENV
         REPO_NAME=${GITHUB_REPOSITORY##*/}
@@ -73,7 +60,7 @@ jobs:
             esac
         done
 
-    - name: Create or Update Release
+    - name: Create Release
       uses: actions/github-script@v4
       with:
         github-token: ${{secrets.GITHUB_TOKEN}}
