@@ -21,7 +21,7 @@ jobs:
           exit 0
         fi
 
-        currentDir="$pwd"
+        currentDir=pwd
         echo "dir before run diff: $currentDir"
         CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
         if ! echo "$CHANGED_FILES" | grep -qE '^src/'; then
