@@ -2,6 +2,10 @@ name: "Ebook Release"
 on:
   workflow_call
 
+permissions:
+  contents: write  # for creating a release
+  actions: read    # for GitHub actions
+  
 jobs:
   build-release:
     runs-on: ubuntu-latest
